@@ -8,8 +8,57 @@ const pool = new Pool({
 });
 
 pool.connect();
+
+// function departmentData() {
+//     return new Promise((resolve, reject) => {
+//     // get departments from db
+//     // format the array for inquirer choices
+//     pool.connect();
+//     const depQuery = 'SELECT * FROM department'
+//     pool.query(depQuery, (error, results) => {
+//         if (error) {
+//             reject(error);
+//         } else {
+//             const departments = results.map((department) => ({
+//                 name: department.name,
+//                 value: department.id,
+//             }));
+
+//             pool.end()
+//             resolve(departments)
+//         }
+//     })
+//     return []
+// })
+// }
+
+function departmentData() {
+    
+    const depQuery = `SELECT * FROM department`;
+    
+
+    return[depQuery.name]
+    
 }
-})
+
+function employeeData() {
+    
+    const empQuery = `SELECT * FROM employee`;
+    
+
+    return[empQuery.name]
+    
+}
+
+function roleData() {
+    
+    const roleQuery = `SELECT * FROM role`;
+    
+
+    return[roleQuery.name]
+    
+}
+
 
 inquirer
    .prompt([
@@ -22,10 +71,13 @@ inquirer
 ])
 .then((answers) => {
     if (answers.options === 'View all departments') {
-        console.log(department)
+        departmentData()
+        console.log(departmentData())
     } else if (answers.options === 'View all roles') {
+        roleData()
         console.log(role)
     } else if (answers.options === 'View all employees') {
+        employeeData()
         console.log(employee.name)
     } else if (answers.options === 'Add a department') {
         inquirer
@@ -36,14 +88,21 @@ inquirer
                 message: 'Please enter the department name'
             }
         ])
+        .then((answers) => {
+            pool.connect()
+            const insertDepQuery = `INSERT INTO department (name) VALUES ('${answers.dep_name}')`;
+
+            pool.query(insertDepQuery, (error, results) => {
+                if (error) {
+                    console.error('Error inserting data:', error)
+                } else {
+                    console.log('Data inserted successfully')
+                }
+
+                pool.end()
+            })
+        })
     } else if (answers.options === 'Add a role') {
-        
-        pool.query('SELECT * FROM role', (err, res) => {
-    if (err) {
-        console.error(err);
-        return;
-    }
-    const department = res.rows.map(row => `${row.id}: ${row.name}`)
         inquirer
         .prompt([
             {
@@ -60,7 +119,7 @@ inquirer
                 type: 'list',
                 name: 'role_dep',
                 message: 'Please enter the department this role belongs to',
-                choices: [department.department_id]
+                choices: departmentData()
             }
     ])
         .then((answers) => {
@@ -79,8 +138,8 @@ inquirer
         }
     )
             pool.end();
-        })
-
+        
+    
     } else if (answers.options === 'Add an employee') {
         inquirer
         .prompt([
@@ -101,6 +160,20 @@ inquirer
                 choices: ['role']
             }
         ])
+        .then((answers) => {
+            pool.connect()
+            const insertEmpQuery = `INSERT INTO employee (first_name, last_name) VALUES ('${answers.first_name}', '${answers.last_name}')`;
+
+            pool.query(insertEmpQuery, (error, results) => {
+                if (error) {
+                    console.error('Error inserting data:', error)
+                } else {
+                    console.log('Data inserted successfully')
+                }
+
+                pool.end()
+            })
+        })
     } 
 });
 
